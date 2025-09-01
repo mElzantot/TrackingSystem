@@ -10,13 +10,14 @@ public class WorkflowStepConfiguration : IEntityTypeConfiguration<WorkflowStep>
     {
         builder.HasKey(e => e.Id);
 
-        builder.Property(e => e.StepName)
+        builder.Property(e => e.Name)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(e => e.AssignedTo)
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.HasOne(e => e.UserRole)
+            .WithMany()
+            .HasForeignKey(e => e.UserRoleId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(e => e.ActionType)
             .IsRequired()

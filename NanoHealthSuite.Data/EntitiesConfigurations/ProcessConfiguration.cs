@@ -14,6 +14,11 @@ public class ProcessConfiguration : IEntityTypeConfiguration<Process>
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(50);
+        
+        builder.Property(e => e.Status)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         builder.Property(e => e.StartedAt)
             .HasDefaultValueSql("GETUTCDATE()");

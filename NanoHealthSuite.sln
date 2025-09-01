@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoHealthSuite.TrackingSystem.Api", "NanoHealthSuite.TrackingSystem.Api\NanoHealthSuite.TrackingSystem.Api.csproj", "{D431BAAD-FE4A-4A8F-8F22-AE1F503608F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoHealthSuite.TrackingSystem", "NanoHealthSuite.TrackingSystem\NanoHealthSuite.TrackingSystem.csproj", "{0B946276-9141-4A91-9ACE-4B6E86F6095D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoHealthSuite.Data", "NanoHealthSuite.Data\NanoHealthSuite.Data.csproj", "{47128C8D-6CAE-4144-ABE2-288994B62890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{D431BAAD-FE4A-4A8F-8F22-AE1F503608F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D431BAAD-FE4A-4A8F-8F22-AE1F503608F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D431BAAD-FE4A-4A8F-8F22-AE1F503608F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B946276-9141-4A91-9ACE-4B6E86F6095D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B946276-9141-4A91-9ACE-4B6E86F6095D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B946276-9141-4A91-9ACE-4B6E86F6095D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B946276-9141-4A91-9ACE-4B6E86F6095D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47128C8D-6CAE-4144-ABE2-288994B62890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47128C8D-6CAE-4144-ABE2-288994B62890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47128C8D-6CAE-4144-ABE2-288994B62890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47128C8D-6CAE-4144-ABE2-288994B62890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

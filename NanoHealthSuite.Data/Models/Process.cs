@@ -1,12 +1,14 @@
-﻿namespace NanoHealthSuite.Data.Models;
+﻿using NanoHealthSuite.Data.Enums;
+
+namespace NanoHealthSuite.Data.Models;
 
 public class Process
 {
     public int Id { get; set; }
-    public int WorkflowId { get; set; }
+    public Guid WorkflowId { get; set; }
     public Guid InitiatorId { get; set; }
-    public string? CurrentStepId { get; set; }
-    public string Status { get; set; }
+    public int CurrentStepId { get; set; }
+    public ProcessStatus Status { get; set; }
     public DateTime StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public virtual Workflow Workflow { get; set; }
