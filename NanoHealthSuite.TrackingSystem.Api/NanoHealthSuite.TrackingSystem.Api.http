@@ -1,0 +1,6 @@
+@NanoHealthSuite.TrackingSystem.Api_HostAddress = http://localhost:5104
+
+GET {{NanoHealthSuite.TrackingSystem.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
