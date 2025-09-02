@@ -13,10 +13,7 @@ public class ProcessExecutionConfiguration : IEntityTypeConfiguration<ProcessExe
         builder.Property(e => e.Action)
             .IsRequired()
             .HasMaxLength(50);
-
-        builder.Property(e => e.ExecutedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
-
+        
         builder.Property(e => e.Comments)
             .HasMaxLength(1000);
 

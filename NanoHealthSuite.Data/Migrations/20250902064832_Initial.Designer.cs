@@ -12,7 +12,7 @@ using WorkflowTracking.Infrastructure.Data;
 namespace NanoHealthSuite.Data.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250901233625_Initial")]
+    [Migration("20250902064832_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -35,7 +35,7 @@ namespace NanoHealthSuite.Data.Migrations
 
                     b.Property<string>("Data")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("StepId")
                         .HasColumnType("integer");
@@ -70,9 +70,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("StartedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -111,9 +109,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .HasColumnType("character varying(1000)");
 
                     b.Property<DateTime>("ExecutedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ProcessId")
                         .HasColumnType("integer");
@@ -142,9 +138,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -218,9 +212,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("ValidatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -238,9 +230,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()

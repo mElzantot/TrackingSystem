@@ -19,10 +19,7 @@ public class ProcessConfiguration : IEntityTypeConfiguration<Process>
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(50);
-
-        builder.Property(e => e.StartedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
-
+        
         builder.HasOne(e => e.Workflow)
             .WithMany(w => w.Processes)
             .HasForeignKey(e => e.WorkflowId)

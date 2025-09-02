@@ -23,10 +23,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(e => e.RefreshToken)
             .HasMaxLength(500);
-
-        builder.Property(e => e.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
-
+        
         builder.HasOne(e => e.Role)
             .WithMany(r => r.Users)
             .HasForeignKey(e => e.RoleId)

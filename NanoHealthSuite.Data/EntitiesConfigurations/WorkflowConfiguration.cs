@@ -17,7 +17,5 @@ public class WorkflowConfiguration : IEntityTypeConfiguration<Workflow>
         builder.Property(e => e.Description)
             .HasMaxLength(500);
 
-        builder.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
     }
 }

@@ -15,10 +15,7 @@ public class ValidationLogConfiguration : IEntityTypeConfiguration<ValidationLog
 
         builder.Property(e => e.ErrorMessage)
             .HasMaxLength(1000);
-
-        builder.Property(e => e.ValidatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
-
+        
         builder.HasOne(e => e.ProcessExecution)
             .WithMany(pe => pe.ValidationLogs)
             .HasForeignKey(e => e.ProcessExecutionId)

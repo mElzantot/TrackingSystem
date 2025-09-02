@@ -31,7 +31,7 @@ namespace NanoHealthSuite.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,7 +49,7 @@ namespace NanoHealthSuite.Data.Migrations
                     PasswordHash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     RefreshToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     RefreshTokenExpirationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -105,7 +105,7 @@ namespace NanoHealthSuite.Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     StepId = table.Column<int>(type: "integer", nullable: false),
                     ValidationType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Data = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Data = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -128,7 +128,7 @@ namespace NanoHealthSuite.Data.Migrations
                     InitiatorId = table.Column<Guid>(type: "uuid", nullable: false),
                     CurrentStepId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    StartedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
@@ -163,7 +163,7 @@ namespace NanoHealthSuite.Data.Migrations
                     StepId = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Action = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    ExecutedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ExecutedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Comments = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
@@ -197,7 +197,7 @@ namespace NanoHealthSuite.Data.Migrations
                     ProcessExecutionId = table.Column<int>(type: "integer", nullable: false),
                     IsSuccess = table.Column<bool>(type: "boolean", nullable: false),
                     ErrorMessage = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    ValidatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ValidatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ProcessId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>

@@ -17,7 +17,7 @@ public class CustomValidationConfiguration : IEntityTypeConfiguration<CustomVali
 
         builder.Property(e => e.Data)
             .IsRequired()
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("jsonb");
 
         builder.HasOne(e => e.Step)
             .WithMany(s => s.Validations)
