@@ -2,28 +2,29 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NanoHealthSuite.Data.Models;
+using NanoHealthSuite.TrackingSystem.Helpers;
 
 namespace NanoHealthSuite.TrackingSystem.Processors;
 
 public class TokenServiceProvider : ITokenServiceProvider
 {
-    private readonly IConfiguration _configuration;
+    private readonly JWTSettings _jwtSettings;
 
-    public TokenServiceProvider(IConfiguration configuration)
+    public TokenServiceProvider(IOptions<JWTSettings> jwtSettings)
     {
-        _configuration = configuration;
+        _jwtSettings = jwtSettings.Value;
     }
 
     public AuthResponseDto GenerateAccessToken(User user)
     {
-        var expirationTime = DateTime.Now.AddMinutes(int.Parse(_configuration["JWT:LifeTimeInMinutes"]));
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+        var expirationTime = DateTime.Now.AddMinutes(_jwtSettings.LifeTimeInMinutes);
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var token = new JwtSecurityToken(
-            issuer: _configuration["JWT:ValidIssuer"],
-            audience: _configuration["JWT:ValidAudience"],
+            issuer: _jwtSettings.ValidIssuer,
+            audience: _jwtSettings.ValidAudience,
             claims: GenerateUserClaim(user),
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256),
             expires: expirationTime,
@@ -37,12 +38,20 @@ public class TokenServiceProvider : ITokenServiceProvider
         };
     }
 
+    public Guid GetUserId(ClaimsPrincipal user)
+    {
+        var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+        return userIdClaim == null ? Guid.Empty : Guid.Parse(userIdClaim.Value);
+    }
+
     private List<Claim> GenerateUserClaim(User user)
     {
         return
         [
             new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role.Name),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString())
         ];
     }
 
