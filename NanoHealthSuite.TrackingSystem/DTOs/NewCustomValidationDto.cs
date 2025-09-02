@@ -7,7 +7,7 @@ namespace NanoHealthSuite.TrackingSystem;
 public class NewCustomValidationDto
 {
     [Required(ErrorMessage = "Validation type is required")]
-    public ValidationType ValidationType { get; set; }
+    public CustomValidationType ValidationType { get; set; }
 
     [Required(ErrorMessage = "Validation data is required")]
     [JsonPropertyName("validation_data")]
