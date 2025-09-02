@@ -4,18 +4,17 @@ using Microsoft.Extensions.Logging;
 using NanoHealthSuite.Data.Enums;
 using NanoHealthSuite.Data.Models;
 using NanoHealthSuite.TrackingSystem.ValidationTypesModels;
-using WorkflowTracking.Infrastructure.Data;
 
 namespace NanoHealthSuite.TrackingSystem.Services;
 
 public class WorkflowService
 {
-    private readonly WorkflowDbContext _context;
+    private readonly IWorkflowRepository _workflowRepository;
     private readonly ILogger<WorkflowService> _logger;
 
-    public WorkflowService(WorkflowDbContext context, ILogger<WorkflowService> logger)
+    public WorkflowService(IWorkflowRepository workflowRepository, ILogger<WorkflowService> logger)
     {
-        _context = context;
+        _workflowRepository = workflowRepository;
         _logger = logger;
     }
 
@@ -31,7 +30,6 @@ public class WorkflowService
             Steps = new List<WorkflowStep>()
         };
 
-        // Create steps with validations
         var stepMapping = new Dictionary<string, WorkflowStep>();
 
         foreach (var stepDto in request.Steps)
@@ -45,7 +43,6 @@ public class WorkflowService
                 Validations = new List<CustomValidation>()
             };
 
-            // Add validations if any
             if (stepDto.Validations != null && stepDto.Validations.Any())
             {
                 foreach (var validationDto in stepDto.Validations)
@@ -59,7 +56,6 @@ public class WorkflowService
             stepMapping[step.Name] = step;
         }
 
-        // Link NextStep references
         for (int i = 0; i < request.Steps.Count; i++)
         {
             var stepDto = request.Steps[i];
@@ -72,13 +68,8 @@ public class WorkflowService
             }
         }
 
-        // Save to database
-        _context.Workflows.Add(workflow);
-        await _context.SaveChangesAsync();
-
+        await _workflowRepository.AddAsync(workflow);
         _logger.LogInformation("Workflow '{WorkflowName}' created with ID {WorkflowId}", workflow.Name, workflow.Id);
-
-        // Return response DTO
         return MapToResponseDto(workflow);
     }
 
@@ -95,8 +86,6 @@ public class WorkflowService
             throw new ValidationException($"Duplicate step names found: {string.Join(", ", duplicateSteps)}");
         }
 
-        // Check for circular references
-        var stepNames = request.Steps.Select(s => s.Name).ToHashSet();
         foreach (var step in request.Steps)
         {
             if (step.NextStepName == step.Name)
@@ -108,9 +97,7 @@ public class WorkflowService
 
     private CustomValidation CreateValidation(NewCustomValidationDto customValidationRequest)
     {
-        // Serialize validation data based on type
-        var jsonData =
-            SerializeValidationData(customValidationRequest.ValidationType, customValidationRequest.Data);
+        var jsonData = SerializeValidationData(customValidationRequest.ValidationType, customValidationRequest.Data);
 
         return new CustomValidation
         {
