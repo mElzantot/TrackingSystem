@@ -10,12 +10,10 @@ public class NewWorkflowStepDto
     public string Name { get; set; }
 
     [Required(ErrorMessage = "AssignedTo is required")]
-    [StringLength(100, ErrorMessage = "AssignedTo cannot exceed 100 characters")]
     public Guid AssignedRole { get; set; }
 
     [Required(ErrorMessage = "Action type is required")]
     public ActionType ActionType { get; set; }
-    
     public string? NextStepName { get; set; }
     public List<NewCustomValidationDto>? Validations { get; set; } = null;
 
