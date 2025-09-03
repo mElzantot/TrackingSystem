@@ -1,0 +1,381 @@
+# Workflow Tracking System - Comprehensive API Tests
+# This file contains end-to-end tests for the complete workflow system
+# Base URL: https://localhost:7001 (adjust as needed)
+
+### Variables
+@baseUrl = https://localhost:7001/api/v1
+@token = {{login.response.body.accessToken}}
+@workflowId = {{createWorkflow.response.body.id}}
+@processId = {{startProcess.response.body.id}}
+
+###############################################################################
+# 1. AUTHENTICATION - Get JWT Token
+###############################################################################
+
+### Login to get authentication token
+# @name login
+POST {{baseUrl}}/authentication/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+###############################################################################
+# 2. CREATE WORKFLOW - 5 Steps with API Validation
+###############################################################################
+
+### Create a comprehensive workflow with 5 steps
+# @name createWorkflow
+POST {{baseUrl}}/workflows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Purchase Request Approval Process",
+  "description": "Complete purchase request workflow with validation",
+  "steps": [
+    {
+      "tempId": "submit_request",
+      "name": "Submit Purchase Request",
+      "order": 1,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440001",
+      "actionType": "Input",
+      "nextStepTempId": "manager_review",
+      "validations": null
+    },
+    {
+      "tempId": "manager_review",
+      "name": "Manager Review",
+      "order": 2,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440002",
+      "actionType": "ApproveReject",
+      "nextStepTempId": "budget_validation",
+      "validations": null
+    },
+    {
+      "tempId": "budget_validation",
+      "name": "Budget Validation",
+      "order": 3,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440003",
+      "actionType": "ApproveReject",
+      "nextStepTempId": "finance_approval",
+      "validations": [
+        {
+          "validationType": "API",
+          "data": {
+            "url": "https://api.example.com/validate-budget",
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer api-key-123"
+            },
+            "payloadTemplate": "{\"processId\": \"{{processId}}\", \"userId\": \"{{userId}}\", \"action\": \"{{action}}\"}"
+          }
+        }
+      ]
+    },
+    {
+      "tempId": "finance_approval",
+      "name": "Finance Final Approval",
+      "order": 4,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440004",
+      "actionType": "ApproveReject",
+      "nextStepTempId": "procurement",
+      "validations": null
+    },
+    {
+      "tempId": "procurement",
+      "name": "Procurement Processing",
+      "order": 5,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440005",
+      "actionType": "Input",
+      "nextStepTempId": null,
+      "validations": null
+    }
+  ]
+}
+
+###############################################################################
+# 3. START PROCESS
+###############################################################################
+
+### Start a new process for the created workflow
+# @name startProcess
+POST {{baseUrl}}/processes/start/{{workflowId}}
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 4. PROCESS EXECUTION EXAMPLES
+###############################################################################
+
+### Example 1: SUBMIT Action (Input Step)
+POST {{baseUrl}}/processes/execute
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processId": {{processId}},
+  "stepName": "Submit Purchase Request",
+  "action": "Submit",
+  "comment": "Submitting purchase request for new development laptops",
+  "userInputs": [
+    {
+      "fieldName": "itemDescription",
+      "fieldValue": "Dell XPS 15 Development Laptops",
+      "fieldType": "text"
+    },
+    {
+      "fieldName": "quantity",
+      "fieldValue": "5",
+      "fieldType": "number"
+    },
+    {
+      "fieldName": "unitPrice",
+      "fieldValue": "1500.00",
+      "fieldType": "number"
+    },
+    {
+      "fieldName": "totalAmount",
+      "fieldValue": "7500.00",
+      "fieldType": "number"
+    },
+    {
+      "fieldName": "urgency",
+      "fieldValue": "High",
+      "fieldType": "text"
+    },
+    {
+      "fieldName": "requestDate",
+      "fieldValue": "2024-01-15",
+      "fieldType": "date"
+    },
+    {
+      "fieldName": "businessJustification",
+      "fieldValue": "New team members need development equipment",
+      "fieldType": "text"
+    }
+  ]
+}
+
+### Example 2: APPROVE Action (Approval Step)
+POST {{baseUrl}}/processes/execute
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processId": {{processId}},
+  "stepName": "Manager Review",
+  "action": "Approve",
+  "comment": "Approved - Valid business need and within budget guidelines",
+  "userInputs": null
+}
+
+### Example 3: REJECT Action (Approval Step with Validation)
+POST {{baseUrl}}/processes/execute
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processId": {{processId}},
+  "stepName": "Budget Validation",
+  "action": "Reject",
+  "comment": "Rejected - Exceeds quarterly budget allocation",
+  "userInputs": null
+}
+
+###############################################################################
+# 5. GET PROCESSES WITH FILTERS
+###############################################################################
+
+### Get all processes
+GET {{baseUrl}}/processes
+Authorization: Bearer {{token}}
+
+### Get processes filtered by workflow
+GET {{baseUrl}}/processes?workflowId={{workflowId}}
+Authorization: Bearer {{token}}
+
+### Get processes filtered by status (Active)
+GET {{baseUrl}}/processes?status=Active
+Authorization: Bearer {{token}}
+
+### Get processes filtered by status (Completed)
+GET {{baseUrl}}/processes?status=Completed
+Authorization: Bearer {{token}}
+
+### Get processes filtered by status (Rejected)
+GET {{baseUrl}}/processes?status=Rejected
+Authorization: Bearer {{token}}
+
+### Get processes filtered by user role
+GET {{baseUrl}}/processes?userRoleId=550e8400-e29b-41d4-a716-446655440002
+Authorization: Bearer {{token}}
+
+### Get processes with multiple filters (workflow + status)
+GET {{baseUrl}}/processes?workflowId={{workflowId}}&status=Active
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 6. ADDITIONAL WORKFLOW TESTING
+###############################################################################
+
+### Create a second workflow for testing variety
+POST {{baseUrl}}/workflows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Employee Onboarding Process",
+  "description": "New employee onboarding workflow",
+  "steps": [
+    {
+      "tempId": "hr_setup",
+      "name": "HR Setup",
+      "order": 1,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440006",
+      "actionType": "Input",
+      "nextStepTempId": "it_provisioning",
+      "validations": null
+    },
+    {
+      "tempId": "it_provisioning",
+      "name": "IT Equipment Provisioning",
+      "order": 2,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440007",
+      "actionType": "ApproveReject",
+      "nextStepTempId": "access_approval",
+      "validations": null
+    },
+    {
+      "tempId": "access_approval",
+      "name": "System Access Approval",
+      "order": 3,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440008",
+      "actionType": "ApproveReject",
+      "nextStepTempId": null,
+      "validations": [
+        {
+          "validationType": "API",
+          "data": {
+            "url": "https://security-api.example.com/validate-access",
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "payloadTemplate": "{\"employeeId\": \"{{userId}}\", \"department\": \"development\"}"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+###############################################################################
+# 7. ERROR TESTING SCENARIOS
+###############################################################################
+
+### Try to execute step without authentication (should fail)
+POST {{baseUrl}}/processes/execute
+Content-Type: application/json
+
+{
+  "processId": {{processId}},
+  "stepName": "Manager Review",
+  "action": "Approve",
+  "comment": "Testing without auth"
+}
+
+### Try to execute non-existent process (should fail)
+POST {{baseUrl}}/processes/execute
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processId": 99999,
+  "stepName": "Manager Review",
+  "action": "Approve",
+  "comment": "Testing with invalid process ID"
+}
+
+### Try to execute wrong step (should fail)
+POST {{baseUrl}}/processes/execute
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "processId": {{processId}},
+  "stepName": "Non Existent Step",
+  "action": "Approve",
+  "comment": "Testing with invalid step name"
+}
+
+###############################################################################
+# 8. WORKFLOW CREATION VALIDATION TESTS
+###############################################################################
+
+### Try to create workflow with duplicate TempIds (should fail)
+POST {{baseUrl}}/workflows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Invalid Workflow - Duplicate TempIds",
+  "description": "Testing validation",
+  "steps": [
+    {
+      "tempId": "duplicate_id",
+      "name": "Step One",
+      "order": 1,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440001",
+      "actionType": "Input",
+      "nextStepTempId": null
+    },
+    {
+      "tempId": "duplicate_id",
+      "name": "Step Two",
+      "order": 2,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440002",
+      "actionType": "ApproveReject",
+      "nextStepTempId": null
+    }
+  ]
+}
+
+### Try to create workflow with invalid next step reference (should fail)
+POST {{baseUrl}}/workflows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Invalid Workflow - Bad Next Step",
+  "description": "Testing validation",
+  "steps": [
+    {
+      "tempId": "step_one",
+      "name": "Step One",
+      "order": 1,
+      "assignedRole": "550e8400-e29b-41d4-a716-446655440001",
+      "actionType": "Input",
+      "nextStepTempId": "non_existent_step"
+    }
+  ]
+}
+
+###############################################################################
+# NOTES FOR TESTING:
+# 
+# 1. Update the @baseUrl variable to match your local development URL
+# 2. Make sure you have valid user accounts and role GUIDs in your database
+# 3. The API validation URLs are examples - replace with actual test endpoints
+# 4. Run tests in order as some depend on previous results (variables)
+# 5. Check your database after each test to verify data is being stored correctly
+# 
+# Expected Flow:
+# - Login should return a JWT token
+# - Workflow creation should return a workflow ID
+# - Process start should return a process ID
+# - Process executions should move the process through the workflow steps
+# - Get processes should return the created processes with filters applied
+###############################################################################
