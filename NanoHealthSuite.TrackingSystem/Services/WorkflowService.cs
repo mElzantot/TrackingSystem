@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NanoHealthSuite.Data.Enums;
 using NanoHealthSuite.Data.Models;
+using NanoHealthSuite.TrackingSystem.Shared;
 using NanoHealthSuite.TrackingSystem.ValidationTypesModels;
 
 namespace NanoHealthSuite.TrackingSystem.Services;
@@ -18,15 +19,21 @@ public class WorkflowService
         _logger = logger;
     }
 
-    public async Task<NewWorkflowResponse> CreateWorkflowAsync(NewWorkflowRequest request)
+    public async Task<Result<NewWorkflowResponse>> CreateWorkflowAsync(NewWorkflowRequest request, Guid userId)
     {
-        ValidateWorkflowDto(request);
+        var validationResult = ValidateWorkflowDto(request);
+        
+        if (validationResult.IsFailed)
+        {
+            return Result.Fail<NewWorkflowResponse>(validationResult.Message);
+        }
 
         var workflow = new Workflow
         {
             Name = request.Name,
             Description = request.Description,
             CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
             Steps = new List<WorkflowStep>()
         };
 
@@ -46,9 +53,15 @@ public class WorkflowService
 
             if (stepDto.Validations != null && stepDto.Validations.Any())
             {
-                foreach (var validation in stepDto.Validations.Select(CreateValidation))
+                foreach (var validation in stepDto.Validations)
                 {
-                    step.Validations.Add(validation);
+                    var validationEntity = CreateValidation(validation);
+                    if (validationEntity.IsFailed)
+                    {
+                        return Result.Fail<NewWorkflowResponse>(validationEntity.Message);
+                    }
+                    step.Validations.Add(validationEntity.Value);
+
                 }
             }
 
@@ -68,12 +81,11 @@ public class WorkflowService
 
         await _workflowRepository.AddAsync(workflow);
         _logger.LogInformation("Workflow '{WorkflowName}' created with ID {WorkflowId}", workflow.Name, workflow.Id);
-        return MapToResponseDto(workflow);
+        return Result.Ok(MapToResponseDto(workflow));
     }
 
-    private void ValidateWorkflowDto(NewWorkflowRequest request)
+    private Result ValidateWorkflowDto(NewWorkflowRequest request)
     {
-        // Validate unique TempIds
         var duplicateTempIds = request.Steps
             .GroupBy(s => s.TempId)
             .Where(g => g.Count() > 1)
@@ -82,7 +94,7 @@ public class WorkflowService
 
         if (duplicateTempIds.Any())
         {
-            throw new ValidationException($"Duplicate TempIds found: {string.Join(", ", duplicateTempIds)}");
+            return Result.Fail($"Duplicate TempIds found: {string.Join(", ", duplicateTempIds)}");
         }
 
         // Validate unique step names
@@ -94,7 +106,7 @@ public class WorkflowService
 
         if (duplicateStepNames.Any())
         {
-            throw new ValidationException($"Duplicate step names found: {string.Join(", ", duplicateStepNames)}");
+            return Result.Fail($"Duplicate step names found: {string.Join(", ", duplicateStepNames)}");
         }
 
         // Validate unique orders
@@ -106,7 +118,7 @@ public class WorkflowService
 
         if (duplicateOrders.Any())
         {
-            throw new ValidationException($"Duplicate step orders found: {string.Join(", ", duplicateOrders)}");
+            return Result.Fail($"Duplicate step orders found: {string.Join(", ", duplicateOrders)}");
         }
 
         // Get all valid TempIds
@@ -121,13 +133,13 @@ public class WorkflowService
             // Check self-reference
             if (step.NextStepTempId == step.TempId)
             {
-                throw new ValidationException($"Step '{step.Name}' cannot reference itself as next step");
+                return Result.Fail($"Step '{step.Name}' cannot reference itself as next step");
             }
 
             // Check invalid references (only if NextStepTempId is provided)
             if (!string.IsNullOrEmpty(step.NextStepTempId) && !validTempIds.Contains(step.NextStepTempId))
             {
-                throw new ValidationException($"Step '{step.Name}' references invalid NextStepTempId: '{step.NextStepTempId}'");
+                return Result.Fail($"Step '{step.Name}' references invalid NextStepTempId: '{step.NextStepTempId}'");
             }
 
             // Check order logic - a step can only point to steps with higher order numbers
@@ -138,26 +150,33 @@ public class WorkflowService
                 
                 if (nextStepOrder <= currentOrder)
                 {
-                    throw new ValidationException($"Step '{step.Name}' (order {currentOrder}) cannot reference step with TempId '{step.NextStepTempId}' (order {nextStepOrder}). Next step must have a higher order number.");
+                    return Result.Fail($"Step '{step.Name}' (order {currentOrder}) cannot reference step with TempId '{step.NextStepTempId}' (order {nextStepOrder}). Next step must have a higher order number.");
                 }
             }
         }
+
+        return Result.Ok();
     }
 
-    private CustomValidation CreateValidation(NewCustomValidationDto customValidationRequest)
+    private Result<CustomValidation> CreateValidation(NewCustomValidationDto customValidationRequest)
     {
-        var jsonData = SerializeValidationData(
+        var jsonDataValidation = SerializeValidationData(
             customValidationRequest.ValidationType,
             customValidationRequest.Data);
 
-        return new CustomValidation
+        if (jsonDataValidation.IsFailed)
+        {
+            return Result.Fail<CustomValidation>(jsonDataValidation.Message);
+        }
+
+        return Result.Ok( new CustomValidation
         {
             ValidationType = customValidationRequest.ValidationType,
-            Data = jsonData
-        };
+            Data = jsonDataValidation.Value
+        });
     }
 
-    private string SerializeValidationData(CustomValidationType type, object validationData)
+    private Result<string> SerializeValidationData(CustomValidationType type, object validationData)
     {
         try
         {
@@ -174,7 +193,7 @@ public class WorkflowService
         }
     }
 
-    private NewWorkflowResponse MapToResponseDto(Workflow workflow)
+    private NewWorkflowResponse MapToResponseDto( Workflow workflow)
     {
         return new NewWorkflowResponse
         {
@@ -185,23 +204,27 @@ public class WorkflowService
         };
     }
 
-    private string SerializeApiValidation(object data)
+    private Result<string> SerializeApiValidation(object data)
     {
-        var apiData = JsonSerializer.Deserialize<ApiValidationData>(JsonSerializer.Serialize(data));
+        var dataAsString = JsonSerializer.Serialize(data);
+        var apiData = JsonSerializer.Deserialize<ApiValidationData>(dataAsString,
+            new JsonSerializerOptions() { PropertyNameCaseInsensitive = false });
 
         if (string.IsNullOrEmpty(apiData?.Url))
-            throw new ValidationException("API validation requires a URL");
+            return Result.Fail<string>("API validation requires a URL");
 
-        return JsonSerializer.Serialize(apiData);
+        return Result.Ok(dataAsString);
     }
 
-    private string SerializeDatabaseValidation(object data)
+    private Result<string> SerializeDatabaseValidation(object data)
     {
-        var databaseData = JsonSerializer.Deserialize<DatabaseValidationData>(JsonSerializer.Serialize(data));
+        var dataAsString = JsonSerializer.Serialize(data);
+        var databaseData = JsonSerializer.Deserialize<DatabaseValidationData>(dataAsString,
+            new JsonSerializerOptions() { PropertyNameCaseInsensitive = false });
 
         if (string.IsNullOrEmpty(databaseData?.ConnectionStringName))
-            throw new ValidationException("Database validation requires a ConnectionString");
+            return Result.Fail<string>("Database validation requires a ConnectionString");
 
-        return JsonSerializer.Serialize(databaseData);
+        return Result.Ok(dataAsString);
     }
 }

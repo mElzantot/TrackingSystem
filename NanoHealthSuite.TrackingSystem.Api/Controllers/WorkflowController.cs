@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NanoHealthSuite.TrackingSystem.Processors;
@@ -6,19 +6,18 @@ using NanoHealthSuite.TrackingSystem.Services;
 
 namespace NanoHealthSuite.TrackingSystem.Api.Controllers;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
 [Route("api/v1/workflows")]
 public class WorkflowController : ControllerBase
 {
     private readonly WorkflowService _workflowService;
-    private readonly TokenServiceProvider _tokenServiceProvider;
-
+    private readonly ITokenServiceProvider _tokenServiceProvider;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         WorkflowService workflowService, 
-        TokenServiceProvider tokenServiceProvider,
+        ITokenServiceProvider tokenServiceProvider,
         ILogger<WorkflowController> logger)
     {
         _workflowService = workflowService;
@@ -35,19 +34,18 @@ public class WorkflowController : ControllerBase
         try
         {
             var userId = _tokenServiceProvider.GetUserId(User);
-            
+
             _logger.LogInformation("Creating new workflow: {WorkflowName}", request.Name);
 
-            var result = await _workflowService.CreateWorkflowAsync(request);
+            var result = await _workflowService.CreateWorkflowAsync(request, userId);
 
-            _logger.LogInformation("Workflow created successfully with ID: {WorkflowId}", result.Id);
+            if (result.IsFailed)
+            {
+                return BadRequest(new { error = result.Message });
+            }
 
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            _logger.LogWarning("Validation error creating workflow: {Error}", ex.Message);
-            return BadRequest(new { error = ex.Message });
+            _logger.LogInformation("Workflow created successfully with ID: {WorkflowId}", result.Value.Id);
+            return Ok(result.Value);
         }
         catch (Exception ex)
         {

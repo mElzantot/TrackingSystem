@@ -10,7 +10,6 @@ public class NewCustomValidationDto
     public CustomValidationType ValidationType { get; set; }
 
     [Required(ErrorMessage = "Validation data is required")]
-    [JsonPropertyName("validation_data")]
     public object Data { get; set; }
 
 }

@@ -16,8 +16,6 @@ public class WorkflowStep
     public virtual ICollection<CustomValidation> Validations { get; set; } 
     public virtual ICollection<Process> Processes { get; set; }
     public virtual ICollection<ProcessExecution> ProcessExecutions { get; set; }
+    public virtual ICollection<ValidationLog> ValidationLogs { get; set; }
     public virtual UserRole UserRole { get; set; }
-
-
-
 }

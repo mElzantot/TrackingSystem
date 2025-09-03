@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NanoHealthSuite.Data.Enums;
 using NanoHealthSuite.Data.Models;
 
 namespace NanoHealthSuite.Data.EntitiesConfigurations;
@@ -21,8 +23,7 @@ public class WorkflowStepConfiguration : IEntityTypeConfiguration<WorkflowStep>
 
         builder.Property(e => e.ActionType)
             .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<EnumToStringConverter<ActionType>>();
 
         builder.HasOne(e => e.Workflow)
             .WithMany(w => w.Steps)
