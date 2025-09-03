@@ -5,6 +5,8 @@ using NanoHealthSuite.TrackingSystem;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.ConfigureJwtAuth(builder.Configuration);
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -23,6 +25,26 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "API for managing workflows and process tracking"
     });
+    
+    c.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "bearerAuth"}
+            },
+            Array.Empty<string>()
+        }
+    });
+
     c.UseInlineDefinitionsForEnums();
 });
     
@@ -45,22 +67,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger(options =>
     {
-        options.RouteTemplate = "workflow/swagger/{documentname}/swagger.json";
+        options.RouteTemplate = "swagger/{documentname}/swagger.json";
     });
     app.UseSwaggerUI(options => {
-        options.SwaggerEndpoint("/workflow/swagger/v1/swagger.json", "workflow docs V1");
-        options.RoutePrefix = "workflow/swagger";
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "workflow docs V1");
+        options.RoutePrefix = "swagger";
     });
 }
-
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

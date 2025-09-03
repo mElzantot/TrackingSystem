@@ -40,7 +40,7 @@ public class TokenServiceProvider : ITokenServiceProvider
 
     public Guid GetUserId(ClaimsPrincipal user)
     {
-        var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+        var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
         return userIdClaim == null ? Guid.Empty : Guid.Parse(userIdClaim.Value);
     }
 
@@ -51,7 +51,7 @@ public class TokenServiceProvider : ITokenServiceProvider
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.Name),
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         ];
     }
 

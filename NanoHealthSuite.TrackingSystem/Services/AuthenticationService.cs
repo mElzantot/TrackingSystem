@@ -1,6 +1,6 @@
 ﻿using NanoHealthSuite.Data.Enums;
 using NanoHealthSuite.Data.Models;
-using NanoHealthSuite.TrackingSystem.Helpers;
+using NanoHealthSuite.TrackingSystem.Shared;
 using NanoHealthSuite.TrackingSystem.Processors;
 
 namespace NanoHealthSuite.TrackingSystem.Services;
@@ -42,11 +42,15 @@ public class AuthenticationService
         }
     }
 
-    public async Task<AuthResponseDto?> Login(AuthRequest loginRequest)
+    public async Task<AuthResponseDto?> Login(LoginRequest request)
     {
-        var user = await _userRepository.GetFirstAsync(u => u, u => u.Name == loginRequest.UserName);
+        var user = await _userRepository.GetSingleAsync(
+            u => u, 
+            u => u.Email == request.Email,
+            includes: u => u.Role);
+        
         if (user == null) return null;
-        var isAuthorized = _hashingService.HashCheck(user.PasswordHash, loginRequest.Password);
+        var isAuthorized = _hashingService.HashCheck(user.PasswordHash, request.Password);
         return isAuthorized ? _tokenServiceProvider.GenerateAccessToken(user) : null;
     }
 

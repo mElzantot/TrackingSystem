@@ -23,10 +23,10 @@ public class AuthenticationController : ControllerBase
         return userTokenResult.IsSuccess ? Ok(userTokenResult.Value) : BadRequest(new {message = userTokenResult.Message});
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Login(AuthRequest loginRequest)
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        var tokens = await _authenticationService.Login(loginRequest);
+        var tokens = await _authenticationService.Login(request);
         return tokens == null ? BadRequest("User Name or Password is incorrect") : Ok(tokens);
     }
 }
