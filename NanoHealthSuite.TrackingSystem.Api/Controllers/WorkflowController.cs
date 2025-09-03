@@ -6,6 +6,7 @@ using NanoHealthSuite.TrackingSystem.Services;
 
 namespace NanoHealthSuite.TrackingSystem.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/workflows")]
 public class WorkflowController : ControllerBase
@@ -25,7 +26,6 @@ public class WorkflowController : ControllerBase
         _logger = logger;
     }
 
-    [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(NewWorkflowResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -35,11 +35,6 @@ public class WorkflowController : ControllerBase
         try
         {
             var userId = _tokenServiceProvider.GetUserId(User);
-
-            if (userId == Guid.Empty)
-            {
-                return BadRequest(new { Error = "User is not Authenticated" });
-            }
             
             _logger.LogInformation("Creating new workflow: {WorkflowName}", request.Name);
 

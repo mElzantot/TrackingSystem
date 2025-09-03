@@ -32,7 +32,8 @@ public class WorkflowService
 
         var stepMapping = new Dictionary<string, WorkflowStep>();
 
-        foreach (var stepDto in request.Steps)
+        // Create steps in order
+        foreach (var stepDto in request.Steps.OrderBy(s => s.Order))
         {
             var step = new WorkflowStep
             {
@@ -45,26 +46,23 @@ public class WorkflowService
 
             if (stepDto.Validations != null && stepDto.Validations.Any())
             {
-                foreach (var validationDto in stepDto.Validations)
+                foreach (var validation in stepDto.Validations.Select(CreateValidation))
                 {
-                    var validation = CreateValidation(validationDto);
                     step.Validations.Add(validation);
                 }
             }
 
             workflow.Steps.Add(step);
-            stepMapping[step.Name] = step;
+            stepMapping[stepDto.TempId] = step;
         }
 
-        for (int i = 0; i < request.Steps.Count; i++)
+        foreach (var stepDto in request.Steps)
         {
-            var stepDto = request.Steps[i];
-            var step = workflow.Steps.ElementAt(i);
-
-            if (!string.IsNullOrEmpty(stepDto.NextStepName) &&
-                stepMapping.TryGetValue(stepDto.NextStepName, out var nextStep))
+            if (!string.IsNullOrEmpty(stepDto.NextStepTempId) &&
+                stepMapping.TryGetValue(stepDto.NextStepTempId, out var nextStep))
             {
-                step.NextStep = nextStep;
+                var currentStep = stepMapping[stepDto.TempId];
+                currentStep.NextStep = nextStep;
             }
         }
 
@@ -75,29 +73,82 @@ public class WorkflowService
 
     private void ValidateWorkflowDto(NewWorkflowRequest request)
     {
-        var duplicateSteps = request.Steps
+        // Validate unique TempIds
+        var duplicateTempIds = request.Steps
+            .GroupBy(s => s.TempId)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicateTempIds.Any())
+        {
+            throw new ValidationException($"Duplicate TempIds found: {string.Join(", ", duplicateTempIds)}");
+        }
+
+        // Validate unique step names
+        var duplicateStepNames = request.Steps
             .GroupBy(s => s.Name)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key)
             .ToList();
 
-        if (duplicateSteps.Any())
+        if (duplicateStepNames.Any())
         {
-            throw new ValidationException($"Duplicate step names found: {string.Join(", ", duplicateSteps)}");
+            throw new ValidationException($"Duplicate step names found: {string.Join(", ", duplicateStepNames)}");
         }
 
+        // Validate unique orders
+        var duplicateOrders = request.Steps
+            .GroupBy(s => s.Order)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicateOrders.Any())
+        {
+            throw new ValidationException($"Duplicate step orders found: {string.Join(", ", duplicateOrders)}");
+        }
+
+        // Get all valid TempIds
+        var validTempIds = request.Steps.Select(s => s.TempId).ToHashSet();
+
+        // Create step order mapping for validation
+        var stepOrderMap = request.Steps.ToDictionary(s => s.TempId, s => s.Order);
+
+        // Validate NextStepTempId references
         foreach (var step in request.Steps)
         {
-            if (step.NextStepName == step.Name)
+            // Check self-reference
+            if (step.NextStepTempId == step.TempId)
             {
                 throw new ValidationException($"Step '{step.Name}' cannot reference itself as next step");
+            }
+
+            // Check invalid references (only if NextStepTempId is provided)
+            if (!string.IsNullOrEmpty(step.NextStepTempId) && !validTempIds.Contains(step.NextStepTempId))
+            {
+                throw new ValidationException($"Step '{step.Name}' references invalid NextStepTempId: '{step.NextStepTempId}'");
+            }
+
+            // Check order logic - a step can only point to steps with higher order numbers
+            if (!string.IsNullOrEmpty(step.NextStepTempId))
+            {
+                var currentOrder = step.Order;
+                var nextStepOrder = stepOrderMap[step.NextStepTempId];
+                
+                if (nextStepOrder <= currentOrder)
+                {
+                    throw new ValidationException($"Step '{step.Name}' (order {currentOrder}) cannot reference step with TempId '{step.NextStepTempId}' (order {nextStepOrder}). Next step must have a higher order number.");
+                }
             }
         }
     }
 
     private CustomValidation CreateValidation(NewCustomValidationDto customValidationRequest)
     {
-        var jsonData = SerializeValidationData(customValidationRequest.ValidationType, customValidationRequest.Data);
+        var jsonData = SerializeValidationData(
+            customValidationRequest.ValidationType,
+            customValidationRequest.Data);
 
         return new CustomValidation
         {
