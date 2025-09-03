@@ -16,9 +16,17 @@ public class ValidationLogConfiguration : IEntityTypeConfiguration<ValidationLog
         builder.Property(e => e.ErrorMessage)
             .HasMaxLength(1000);
         
-        builder.HasOne(e => e.ProcessExecution)
+        builder.Property(e => e.RawResponse)
+            .HasColumnType("jsonb");
+        
+        builder.HasOne(e => e.Process)
             .WithMany(pe => pe.ValidationLogs)
-            .HasForeignKey(e => e.ProcessExecutionId)
+            .HasForeignKey(e => e.ProcessId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasOne(e => e.WorkflowStep)
+            .WithMany(pe => pe.ValidationLogs)
+            .HasForeignKey(e => e.StepId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
