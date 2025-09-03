@@ -16,12 +16,6 @@ A comprehensive .NET Core workflow management system that allows organizations t
 - **Structured Input Handling**: Collect structured data with field names, values, and types
 - **Audit Trail**: Complete execution history with comments and timestamps
 
-### Custom Validation System
-- **API Validation**: External API calls for step validation with template support
-- **Database Validation**: SQL-based validation queries (extensible framework)
-- **Validation Logging**: Complete audit trail of all validation attempts and results
-- **Strategy Pattern**: Easily extensible validation system
-
 ### Security & Authentication
 - **JWT Authentication**: Secure API access with role-based authorization
 - **User Context**: Process actions tied to authenticated users
@@ -44,22 +38,12 @@ NanoHealthSuite/
 ├── NanoHealthSuite.TrackingSystem/ # Business logic and services
 ├── NanoHealthSuite.TrackingSystem.Api/ # Web API controllers
 ├── NanoHealthSuite.Shared/         # Shared utilities and models
-├── NanoHealthSuite.Validation/     # Validation strategies
 └── WorkflowSystemTests.http        # Comprehensive API tests
 ```
 
 ## 📋 System Flow
 
-### 1. Workflow Definition Flow
-```mermaid
-graph TD
-    A[Create Workflow] --> B[Define Steps with TempIds]
-    B --> C[Set Step Order & Linking]
-    C --> D[Add Validations (Optional)]
-    D --> E[Workflow Created & Stored]
-```
-
-### 2. Process Execution Flow
+### 1. Process Execution Flow
 ```mermaid
 graph TD
     A[Start Process] --> B[Find First Step]
@@ -77,7 +61,7 @@ graph TD
     K -->|No| L[Complete Process]
 ```
 
-### 3. Validation System Flow
+### 2. Validation System Flow
 ```mermaid
 graph TD
     A[Step Execution] --> B{Has Validations?}
@@ -245,33 +229,6 @@ The project includes comprehensive HTTP tests in `WorkflowSystemTests.http`:
 2. Open `WorkflowSystemTests.http` in VS Code with REST Client extension
 3. Execute tests in order (variables chain between requests)
 4. Verify database state after each major operation
-
-## 🚦 Common Issues & Solutions
-
-### 1. JWT "Signature Key Not Found" Error
-**Solution**: Ensure JWT settings are in both `appsettings.json` and `appsettings.Development.json`
-
-### 2. Database Connection Issues
-**Solution**: Verify PostgreSQL is running and connection string is correct
-
-### 3. Validation Strategy Not Found
-**Solution**: Ensure validation strategies are registered in `Install.cs`
-
-### 4. Step Execution "User Can't Take Action"
-**Solution**: Verify user roles match step assignments in database
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes with tests
-4. Commit changes: `git commit -m 'Add feature'`
-5. Push to branch: `git push origin feature-name`
-6. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
