@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\NanoHealthSuite.Data\NanoHealthSuite.Data.csproj" />
+      <ProjectReference Include="..\NanoHealthSuite.Shared\NanoHealthSuite.Shared.csproj" />
     </ItemGroup>
 
 </Project>
