@@ -44,7 +44,6 @@ NanoHealthSuite/
 ├── NanoHealthSuite.TrackingSystem/ # Business logic and services
 ├── NanoHealthSuite.TrackingSystem.Api/ # Web API controllers
 ├── NanoHealthSuite.Shared/         # Shared utilities and models
-├── NanoHealthSuite.Validation/     # Validation strategies
 └── WorkflowSystemTests.http        # Comprehensive API tests
 ```
 
