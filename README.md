@@ -49,16 +49,7 @@ NanoHealthSuite/
 
 ## 📋 System Flow
 
-### 1. Workflow Definition Flow
-```mermaid
-graph TD
-    A[Create Workflow] --> B[Define Steps with TempIds]
-    B --> C[Set Step Order & Linking]
-    C --> D[Add Validations (Optional)]
-    D --> E[Workflow Created & Stored]
-```
-
-### 2. Process Execution Flow
+### 1. Process Execution Flow
 ```mermaid
 graph TD
     A[Start Process] --> B[Find First Step]
@@ -76,7 +67,7 @@ graph TD
     K -->|No| L[Complete Process]
 ```
 
-### 3. Validation System Flow
+### 2. Validation System Flow
 ```mermaid
 graph TD
     A[Step Execution] --> B{Has Validations?}
