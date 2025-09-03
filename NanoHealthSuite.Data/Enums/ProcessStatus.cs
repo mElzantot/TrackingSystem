@@ -5,5 +5,6 @@ public enum ProcessStatus
     Active,
     Completed,
     Pending,
-    Cancelled
+    Cancelled,
+    Rejected
 }

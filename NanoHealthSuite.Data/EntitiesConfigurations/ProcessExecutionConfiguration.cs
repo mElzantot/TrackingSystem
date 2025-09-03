@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NanoHealthSuite.Data.Enums;
 using NanoHealthSuite.Data.Models;
 
 namespace NanoHealthSuite.Data.EntitiesConfigurations;
@@ -16,6 +18,13 @@ public class ProcessExecutionConfiguration : IEntityTypeConfiguration<ProcessExe
         
         builder.Property(e => e.Comments)
             .HasMaxLength(1000);
+        
+        builder.Property(e => e.UserInputs)
+            .HasColumnType("jsonb");
+
+        builder.Property(e => e.Action)
+            .IsRequired()
+            .HasConversion<EnumToStringConverter<UserAction>>();
 
         builder.HasOne(e => e.Process)
             .WithMany(p => p.Executions)

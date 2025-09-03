@@ -1,4 +1,6 @@
-﻿namespace NanoHealthSuite.Data.Models;
+using NanoHealthSuite.Data.Enums;
+
+namespace NanoHealthSuite.Data.Models;
 
 public class ProcessExecution
 {
@@ -6,9 +8,10 @@ public class ProcessExecution
     public int ProcessId { get; set; }
     public int StepId { get; set; }
     public Guid UserId { get; set; } 
-    public string Action { get; set; }  //TODO : Create Action , and ActionType tables to unify Names of taken actions along the whole system 
+    public UserAction Action { get; set; }  //TODO : Create Action , and ActionType tables to unify Names of taken actions along the whole system 
     public DateTime ExecutedAt { get; set; }
-    public string? Comments { get; set; } 
+    public string? Comments { get; set; }
+    public string UserInputs { get; set; }  
     public virtual User User { get; set; }
     public virtual Process Process { get; set; }
     public virtual WorkflowStep WorkflowStep { get; set; }
