@@ -1,4 +1,4 @@
-﻿namespace NanoHealthSuite.TrackingSystem.Helpers;
+﻿namespace NanoHealthSuite.TrackingSystem.Shared;
 
 public class Result
 {
