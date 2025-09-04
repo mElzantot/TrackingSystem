@@ -86,6 +86,13 @@ public class WorkflowService
 
     private Result ValidateWorkflowDto(NewWorkflowRequest request)
     {
+        var lastStepCount = request.Steps.Count(x => x.NextStepTempId == null);
+
+        if (lastStepCount > 1)
+        {
+            return Result.Fail("Duplicate Final step : Two Steps with No Next step Id");
+        }
+        
         var duplicateTempIds = request.Steps
             .GroupBy(s => s.TempId)
             .Where(g => g.Count() > 1)
