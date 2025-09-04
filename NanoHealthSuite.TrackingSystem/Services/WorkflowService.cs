@@ -66,15 +66,15 @@ public class WorkflowService
             }
 
             workflow.Steps.Add(step);
-            stepMapping[stepDto.TempId] = step;
+            stepMapping[stepDto.Name] = step;
         }
 
         foreach (var stepDto in request.Steps)
         {
-            if (!string.IsNullOrEmpty(stepDto.NextStepTempId) &&
-                stepMapping.TryGetValue(stepDto.NextStepTempId, out var nextStep))
+            if (!string.IsNullOrEmpty(stepDto.NextStepName) &&
+                stepMapping.TryGetValue(stepDto.NextStepName, out var nextStep))
             {
-                var currentStep = stepMapping[stepDto.TempId];
+                var currentStep = stepMapping[stepDto.Name];
                 currentStep.NextStep = nextStep;
             }
         }
@@ -86,24 +86,13 @@ public class WorkflowService
 
     private Result ValidateWorkflowDto(NewWorkflowRequest request)
     {
-        var lastStepCount = request.Steps.Count(x => x.NextStepTempId == null);
+        var lastStepCount = request.Steps.Count(x => x.NextStepName == null);
 
         if (lastStepCount > 1)
         {
             return Result.Fail("Duplicate Final step : Two Steps with No Next step Id");
         }
         
-        var duplicateTempIds = request.Steps
-            .GroupBy(s => s.TempId)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .ToList();
-
-        if (duplicateTempIds.Any())
-        {
-            return Result.Fail($"Duplicate TempIds found: {string.Join(", ", duplicateTempIds)}");
-        }
-
         // Validate unique step names
         var duplicateStepNames = request.Steps
             .GroupBy(s => s.Name)
@@ -129,35 +118,35 @@ public class WorkflowService
         }
 
         // Get all valid TempIds
-        var validTempIds = request.Steps.Select(s => s.TempId).ToHashSet();
+        var validNames = request.Steps.Select(s => s.Name).ToHashSet();
 
         // Create step order mapping for validation
-        var stepOrderMap = request.Steps.ToDictionary(s => s.TempId, s => s.Order);
+        var stepOrderMap = request.Steps.ToDictionary(s => s.Name, s => s.Order);
 
         // Validate NextStepTempId references
         foreach (var step in request.Steps)
         {
             // Check self-reference
-            if (step.NextStepTempId == step.TempId)
+            if (step.NextStepName == step.Name)
             {
                 return Result.Fail($"Step '{step.Name}' cannot reference itself as next step");
             }
 
             // Check invalid references (only if NextStepTempId is provided)
-            if (!string.IsNullOrEmpty(step.NextStepTempId) && !validTempIds.Contains(step.NextStepTempId))
+            if (!string.IsNullOrEmpty(step.NextStepName) && !validNames.Contains(step.NextStepName))
             {
-                return Result.Fail($"Step '{step.Name}' references invalid NextStepTempId: '{step.NextStepTempId}'");
+                return Result.Fail($"Step '{step.Name}' references invalid NextStepTempId: '{step.NextStepName}'");
             }
 
             // Check order logic - a step can only point to steps with higher order numbers
-            if (!string.IsNullOrEmpty(step.NextStepTempId))
+            if (!string.IsNullOrEmpty(step.NextStepName))
             {
                 var currentOrder = step.Order;
-                var nextStepOrder = stepOrderMap[step.NextStepTempId];
+                var nextStepOrder = stepOrderMap[step.NextStepName];
                 
                 if (nextStepOrder <= currentOrder)
                 {
-                    return Result.Fail($"Step '{step.Name}' (order {currentOrder}) cannot reference step with TempId '{step.NextStepTempId}' (order {nextStepOrder}). Next step must have a higher order number.");
+                    return Result.Fail($"Step '{step.Name}' (order {currentOrder}) cannot reference step with TempId '{step.NextStepName}' (order {nextStepOrder}). Next step must have a higher order number.");
                 }
             }
         }
