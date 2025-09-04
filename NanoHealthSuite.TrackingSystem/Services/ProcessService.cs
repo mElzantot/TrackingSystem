@@ -171,6 +171,7 @@ public class ProcessService
         string comment,
         List<UserInput>? userInputs)
     {
+        userInputs ??= new List<UserInput>();
         var execution = new ProcessExecution
         {
             ProcessId = processId,
@@ -179,7 +180,7 @@ public class ProcessService
             Action = action,
             ExecutedAt = DateTime.UtcNow,
             Comments = comment,
-            UserInputs = userInputs != null ?  JsonSerializer.Serialize(userInputs) : string.Empty
+            UserInputs =  JsonSerializer.Serialize(userInputs) 
         };
 
         await _processExecutionRepository.AddAsync(execution);
